@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
 
 # =========================================================
-# MEMORY (ANTI-REPEAT)
+# MEMORY SYSTEM (ANTI-REPETITION)
 # =========================================================
 
 class Memory:
@@ -41,116 +41,137 @@ class Memory:
         cls.DATA[uid][sig] = cls.now()
 
 # =========================================================
-# CONTENT STORAGE (YOU CAN ADD YOUR OWN LINES HERE)
+# PALESTINE EMOJIS ONLY
+# =========================================================
+
+PALESTINE_EMOJIS = ["🇵🇸", "🍉", "🕊️"]
+
+def add_palestine_emoji(text):
+    emoji = random.choice(PALESTINE_EMOJIS)
+    return f"{text} {emoji}"
+
+# =========================================================
+# CONTENT STRUCTURE (PROFESSIONAL & EXPANDABLE)
+# YOU CAN ADD YOUR OWN SENTENCES & HASHTAGS INSIDE "extra"
 # =========================================================
 
 CONTENT = {
     "palestine": {
-        "base": [
-            "Palestine is more than a headline — it’s people and memory.",
-            "For many families, Palestine means identity and belonging.",
-            "The word Palestine carries stories across generations.",
-        ],
-        "extra": []  # 👈 Add your own Palestine lines here
+        "sentences": {
+            "base": [
+                "Palestine is carried in memory and identity.",
+                "For many families, Palestine means belonging.",
+                "The name Palestine holds generations of stories.",
+            ],
+            "extra": []  # 👈 Add your own Palestine sentences here
+        },
+        "hashtags": {
+            "base": [
+                "#Palestine",
+                "#FreePalestine",
+                "#PalestinianVoices",
+            ],
+            "extra": []  # 👈 Add your own Palestine hashtags here
+        }
     },
     "gaza": {
-        "base": [
-            "In Gaza, daily life continues with quiet resilience.",
-            "Gaza is home to families who hold onto hope.",
-            "Beyond the news cycle, Gaza is everyday life.",
-        ],
-        "extra": []  # 👈 Add your own Gaza lines here
+        "sentences": {
+            "base": [
+                "Gaza is home to resilience and family life.",
+                "In Gaza, daily life continues despite hardship.",
+                "Gaza represents endurance and hope.",
+            ],
+            "extra": []
+        },
+        "hashtags": {
+            "base": [
+                "#Gaza",
+                "#GazaVoices",
+                "#StandWithGaza",
+            ],
+            "extra": []
+        }
     },
     "maps": {
-        "base": [
-            "Old maps still carry familiar names.",
-            "Historical maps document places long remembered.",
-            "A map can preserve more than borders — it preserves memory.",
-        ],
-        "extra": []  # 👈 Add your own Maps lines here
+        "sentences": {
+            "base": [
+                "Historical maps preserve familiar names.",
+                "Old maps still reflect a shared memory.",
+                "Cartography often tells a deeper story.",
+            ],
+            "extra": []
+        },
+        "hashtags": {
+            "base": [
+                "#HistoricalMaps",
+                "#Archive",
+                "#DocumentedHistory",
+            ],
+            "extra": []
+        }
     },
     "suffering": {
-        "base": [
-            "Behind every statistic, there are human stories.",
-            "Displacement leaves marks that time does not erase.",
-            "Generations grow up shaped by circumstances they didn’t choose.",
-        ],
-        "extra": []  # 👈 Add your own General Struggle lines here
+        "sentences": {
+            "base": [
+                "Behind every headline, there are human lives.",
+                "Displacement leaves lasting emotional traces.",
+                "Generations grow up shaped by difficult realities.",
+            ],
+            "extra": []
+        },
+        "hashtags": {
+            "base": [
+                "#SharedHumanity",
+                "#HumanStories",
+                "#CollectiveMemory",
+            ],
+            "extra": []
+        }
     }
 }
 
-REFLECTION_LINES = [
-    "Memory travels even when people cannot.",
-    "Identity survives through language and tradition.",
-    "Home is sometimes a place carried in the heart.",
-]
-
-SOFT_QUESTIONS = [
-    "What does home mean to you?",
-    "Can memory itself be a form of presence?",
-    "How do we carry history forward?",
-]
-
-CALL_TO_ACTION = [
-    "Share your thoughts respectfully.",
-    "I’d like to hear your perspective.",
-    "Feel free to comment below.",
-]
-
-HASHTAGS = [
-    "#Palestine",
-    "#Gaza",
-    "#History",
-    "#SharedHumanity",
-]
-
-PALESTINE_EMOJIS = ["🇵🇸", "🕊️"]
-
 # =========================================================
-# CONTENT ENGINE
+# ENGINE
 # =========================================================
 
-class PostEngine:
+class ProfessionalEngine:
 
     def __init__(self, uid):
         self.uid = uid
 
-    def get_lines(self, category):
-        base = CONTENT[category]["base"]
-        extra = CONTENT[category]["extra"]
-        return base + extra
+    def get_sentences(self, category):
+        data = CONTENT[category]["sentences"]
+        return data["base"] + data["extra"]
 
-    def maybe_emoji(self, text):
-        if random.random() < 0.6:
-            return f"{text} {random.choice(PALESTINE_EMOJIS)}"
-        return text
+    def get_hashtags(self, category):
+        data = CONTENT[category]["hashtags"]
+        return data["base"] + data["extra"]
 
-    def maybe_hashtag(self, text):
-        if random.random() < 0.4:
-            text += "\n\n" + random.choice(HASHTAGS)
-        return text
-
-    def build(self, category):
-
-        lines = self.get_lines(category)
+    def generate_sentence(self, category):
+        lines = self.get_sentences(category)
         if not lines:
             return None
 
-        main_line = random.choice(lines)
-        reflection = random.choice(REFLECTION_LINES)
+        text = random.choice(lines)
+        text = add_palestine_emoji(text)
 
-        text = f"{main_line}"
-        text = self.maybe_emoji(text)
+        signature = hashlib.sha1(text.encode()).hexdigest()
 
-        text += f"\n\n{reflection}"
+        if Memory.seen(self.uid, signature):
+            return None
 
-        if random.random() < 0.7:
-            text += f"\n\n{random.choice(SOFT_QUESTIONS)}"
+        Memory.store(self.uid, signature)
 
-        if random.random() < 0.7:
-            text += f"\n\n{random.choice(CALL_TO_ACTION)}"
+        return f"<code>{text}</code>"
 
-        text = self.maybe_hashtag(text)
+    def generate_hashtags(self, category):
+        tags = self.get_hashtags(category)
+        if not tags:
+            return None
+
+        selected = random.sample(tags, min(3, len(tags)))
+        text = " ".join(selected)
+        text = add_palestine_emoji(text)
 
         signature = hashlib.sha1(text.encode()).hexdigest()
 
@@ -162,28 +183,43 @@ class PostEngine:
         return f"<code>{text}</code>"
 
 # =========================================================
-# UI (ARABIC MENU ONLY)
+# UI MENUS (TWO MAIN LISTS)
 # =========================================================
 
 def main_menu():
     kb = InlineKeyboardMarkup(row_width=2)
     kb.add(
-        InlineKeyboardButton("🇵🇸 فلسطين", callback_data="cat|palestine"),
-        InlineKeyboardButton("🔥 غزة", callback_data="cat|gaza"),
-    )
-    kb.add(
-        InlineKeyboardButton("🗺️ الخرائط", callback_data="cat|maps"),
-        InlineKeyboardButton("💭 المعاناة العامة", callback_data="cat|suffering"),
+        InlineKeyboardButton("📝 جمل", callback_data="main|sentences"),
+        InlineKeyboardButton("🏷️ هاشتاجات", callback_data="main|hashtags"),
     )
     return kb
 
-def regenerate_menu(category):
-    kb = InlineKeyboardMarkup()
+def category_menu(main_type):
+    kb = InlineKeyboardMarkup(row_width=2)
     kb.add(
-        InlineKeyboardButton("🔄 توليد جملة أخرى", callback_data=f"regen|{category}")
+        InlineKeyboardButton("🇵🇸 فلسطين", callback_data=f"{main_type}|palestine"),
+        InlineKeyboardButton("🔥 غزة", callback_data=f"{main_type}|gaza"),
     )
     kb.add(
-        InlineKeyboardButton("⬅️ رجوع للقائمة", callback_data="menu")
+        InlineKeyboardButton("🗺️ الخرائط", callback_data=f"{main_type}|maps"),
+        InlineKeyboardButton("💭 المعاناة العامة", callback_data=f"{main_type}|suffering"),
+    )
+    kb.add(
+        InlineKeyboardButton("⬅️ رجوع", callback_data="back_main")
+    )
+    return kb
+
+def regenerate_menu(main_type, category):
+    kb = InlineKeyboardMarkup()
+    kb.add(
+        InlineKeyboardButton("🔄 توليد مرة أخرى", callback_data=f"regen|{main_type}|{category}")
+    )
+    kb.add(
+        InlineKeyboardButton("🏷️ هاشتاجات لنفس القسم", callback_data=f"hashtags|{category}"),
+        InlineKeyboardButton("📝 جمل لنفس القسم", callback_data=f"sentences|{category}"),
+    )
+    kb.add(
+        InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="back_main")
     )
     return kb
 
@@ -204,35 +240,53 @@ def callbacks(call):
 
     data = call.data.split("|")
     uid = call.from_user.id
-    engine = PostEngine(uid)
+    engine = ProfessionalEngine(uid)
 
-    if data[0] == "cat":
+    if data[0] == "main":
+        main_type = data[1]
+        bot.send_message(
+            call.message.chat.id,
+            "اختر القسم:",
+            reply_markup=category_menu(main_type)
+        )
+
+    elif data[0] in ["sentences", "hashtags"] and len(data) == 2:
+        main_type = data[0]
         category = data[1]
-        post = engine.build(category)
 
-        if post:
+        if main_type == "sentences":
+            result = engine.generate_sentence(category)
+        else:
+            result = engine.generate_hashtags(category)
+
+        if result:
             bot.send_message(
                 call.message.chat.id,
-                post,
-                reply_markup=regenerate_menu(category)
+                result,
+                reply_markup=regenerate_menu(main_type, category)
             )
         else:
             bot.answer_callback_query(call.id, "حاول مرة أخرى")
 
     elif data[0] == "regen":
-        category = data[1]
-        post = engine.build(category)
+        main_type = data[1]
+        category = data[2]
 
-        if post:
+        if main_type == "sentences":
+            result = engine.generate_sentence(category)
+        else:
+            result = engine.generate_hashtags(category)
+
+        if result:
             bot.send_message(
                 call.message.chat.id,
-                post,
-                reply_markup=regenerate_menu(category)
+                result,
+                reply_markup=regenerate_menu(main_type, category)
             )
         else:
             bot.answer_callback_query(call.id, "حاول مرة أخرى")
 
-    elif data[0] == "menu":
+    elif data[0] == "back_main":
         bot.send_message(
             call.message.chat.id,
             "اختر نوع المحتوى:",
@@ -243,5 +297,5 @@ def callbacks(call):
 # RUN
 # =========================================================
 
-logging.info("Palestine Content Bot Running...")
+logging.info("Professional Palestine Content Bot Running...")
 bot.infinity_polling(skip_pending=True)
