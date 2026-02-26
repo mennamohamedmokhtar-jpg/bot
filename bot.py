@@ -1,78 +1,29 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
-import time
 import random
 import hashlib
+import time
 import logging
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# =========================================================
+# ======================================================
 # CONFIG
-# =========================================================
+# ======================================================
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-# =========================================================
-# BOT INIT
-# =========================================================
+logging.basicConfig(level=logging.INFO)
 
 bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
 
-# =========================================================
-# SAFETY ENGINE
-# =========================================================
+# ======================================================
+# MEMORY SYSTEM
+# ======================================================
 
-class SafetyEngine:
-
-    BLOCKED = {
-        "conflict","violence","violent","resistance","occupation",
-        "zion","zionist","jewish","israel","israeli",
-        "attack","kill","bomb","destroy","rocket","missile",
-        "fraud","scam"
-    }
-
-    SEMANTIC = {
-        "war": ["battle","fight","combat","clash"],
-        "military": ["armed","forces","troops"],
-        "destruction": ["ruin","devastation","wreckage"],
-    }
-
-    @classmethod
-    def word_safe(cls, text):
-        words = re.findall(r"\b[a-zA-Z]+\b", text.lower())
-        return not any(w in cls.BLOCKED for w in words)
-
-    @classmethod
-    def semantic_safe(cls, text):
-        t = text.lower()
-        for root, variants in cls.SEMANTIC.items():
-            if re.search(rf"\b{root}\b", t):
-                return False
-            for v in variants:
-                if re.search(rf"\b{v}\b", t):
-                    return False
-        return True
-
-    @classmethod
-    def is_safe(cls, text):
-        return cls.word_safe(text) and cls.semantic_safe(text)
-
-# =========================================================
-# MEMORY ENGINE
-# =========================================================
-
-class MemoryEngine:
-
-    MEMORY = {}
-    LIMIT = 300
+class Memory:
+    DATA = {}
     TTL = 3600 * 6
 
     @classmethod
@@ -81,235 +32,164 @@ class MemoryEngine:
 
     @classmethod
     def seen(cls, uid, sig):
-        cls.MEMORY.setdefault(uid, {})
-        if sig in cls.MEMORY[uid]:
-            return cls.now() - cls.MEMORY[uid][sig] < cls.TTL
+        cls.DATA.setdefault(uid, {})
+        if sig in cls.DATA[uid]:
+            return cls.now() - cls.DATA[uid][sig] < cls.TTL
         return False
 
     @classmethod
-    def remember(cls, uid, sig):
-        cls.MEMORY.setdefault(uid, {})
-        cls.MEMORY[uid][sig] = cls.now()
+    def store(cls, uid, sig):
+        cls.DATA.setdefault(uid, {})
+        cls.DATA[uid][sig] = cls.now()
 
-        if len(cls.MEMORY[uid]) > cls.LIMIT:
-            cls.MEMORY[uid] = dict(
-                sorted(cls.MEMORY[uid].items(), key=lambda x: x[1])[-cls.LIMIT:]
-            )
+# ======================================================
+# CONTENT BANK
+# ======================================================
 
-# =========================================================
+HOOKS = [
+    "مش كل التفاصيل بتظهر في السرد المشهور.",
+    "في نقطة صغيرة بتغير الصورة بالكامل.",
+    "أحيانًا السطر القصير بيحكي أكتر من صفحة كاملة.",
+    "في وثيقة قديمة نادرًا ما يتم ذكرها.",
+    "في تفصيلة لو ركزت فيها… الصورة تختلف."
+]
+
+MICRO_STORIES = [
+    "في أرشيف قديم، الاسم كان مكتوب بوضوح.\nلكن قليلين لاحظوا ده.",
+    "القرية دي كانت موجودة في 3 سجلات مختلفة.\nالتفصيلة دي وحدها بتحكي قصة.",
+    "خريطة بسيطة من القرن الماضي\nلكنها لسه بتثير أسئلة لحد النهارده."
+]
+
+KNOWLEDGE_BITS = [
+    "أقدم توثيق رسمي للاسم ده كان قبل عقود طويلة.",
+    "الاسم ظهر في أكثر من سجل تاريخي مختلف.",
+    "المراجع القديمة بتذكر المكان بشكل واضح ومتكرر."
+]
+
+ENGAGEMENT_QUESTIONS = [
+    "شايف إن التفاصيل الصغيرة مهمة؟",
+    "اتفق ولا شايف إن الصورة أكبر من كده؟",
+    "إيه أكتر نقطة لفتت نظرك؟",
+    "لو هتلخص الفكرة دي في كلمة، هتقول إيه؟"
+]
+
+ULTRA_SHORT = [
+    "التفاصيل بتفرق.",
+    "الذاكرة أطول من الزمن.",
+    "السرد مش دايمًا كامل.",
+    "الوثائق بتتكلم."
+]
+
+CTAS = [
+    "اكتب رأيك 👇",
+    "شاركنا وجهة نظرك.",
+    "قولنا تفكيرك في تعليق.",
+    "لو مهتم بالمحتوى ده، تفاعل مع البوست."
+]
+
+HASHTAGS = [
+    "#History",
+    "#Memory",
+    "#Archive",
+    "#Story"
+]
+
+# ======================================================
 # USER PREFS
-# =========================================================
+# ======================================================
 
 USER_PREFS = {}
 
-def get_prefs(uid):
+def prefs(uid):
     USER_PREFS.setdefault(uid, {
-        "randomness": 0.5,
-        "emoji": True,
-        "questions": True
+        "mode": "auto"
     })
     return USER_PREFS[uid]
 
-# =========================================================
-# TEXT DATA
-# =========================================================
+# ======================================================
+# CONTENT ENGINE
+# ======================================================
 
-OPENINGS = {
-    "palestine": [
-        "Palestine exists as a continuous historical identity",
-        "Palestine remains present through land, memory, and people",
-        "Palestine persists beyond time and imposed narratives",
-    ],
-    "gaza": [
-        "Gaza reflects lived Palestinian reality",
-        "Gaza carries Palestinian presence forward",
-        "Gaza stands as daily evidence of Palestinian life",
-    ],
-    "maps": [
-        "This is a historical map of Palestine before 1948",
-        "An archival cartographic record of Palestine prior to 1948",
-    ],
-    "memory": [
-        "Palestinian memory moves steadily through generations",
-        "Memory preserves Palestinian presence without interruption",
-    ],
-    "nakba": [
-        "The Nakba marked a decisive historical rupture",
-        "The Nakba reshaped Palestinian life permanently",
-    ]
-}
-
-MIDDLES = [
-    "documented carefully through records, names, and places",
-    "preserved with historical accuracy and restraint",
-    "recorded without exaggeration or distortion",
-    "maintained as part of an unbroken historical record",
-]
-
-ENDINGS = [
-    "as part of Palestinian historical continuity",
-    "within Palestinian collective memory",
-    "rooted firmly in historical presence",
-    "held intact across generations",
-]
-
-QUESTIONS = {
-    "palestine": [
-        "If this identity never disappeared, why is it still questioned?",
-        "How much evidence is required before reality is accepted?"
-    ],
-    "gaza": [
-        "If daily life continues, what exactly is claimed to be absent?",
-        "At what point does existence stop needing justification?"
-    ],
-    "maps": [
-        "If maps record reality, why are these ones ignored?",
-        "How can erased borders still appear so clearly?"
-    ],
-    "memory": [
-        "If memory is continuous, who decides when it ends?",
-    ],
-    "nakba": [
-        "If displacement reshaped everything, why is its cause denied?",
-    ]
-}
-
-HASHTAGS = {
-    "palestine": "#Palestine #PalestinianIdentity",
-    "gaza": "#Gaza #PalestinianMemory",
-    "maps": "#HistoricalMap #Palestine",
-    "memory": "#PalestinianMemory #History",
-    "nakba": "#Nakba #PalestinianMemory"
-}
-
-EMOJIS = ["🇵🇸","📜","🕊️","⏳","🗺️"]
-
-SYNONYMS = {
-    "historical": ["documented","archival","recorded"],
-    "preserved": ["maintained","kept","retained"],
-    "exists": ["persists","remains","endures"]
-}
-
-# =========================================================
-# GENERATION ENGINE
-# =========================================================
-
-class TextEngine:
+class EngagementEngine:
 
     def __init__(self, uid):
         self.uid = uid
-        self.prefs = get_prefs(uid)
 
-    def apply_synonyms(self, text):
-        intensity = self.prefs["randomness"]
-        for word, alts in SYNONYMS.items():
-            if random.random() < intensity:
-                text = re.sub(rf"\b{word}\b", random.choice(alts), text, count=1)
-        return text
+    def generate(self):
 
-    def build(self, category):
+        mode = random.choice([
+            "hook",
+            "micro_story",
+            "knowledge",
+            "question_post",
+            "ultra_short"
+        ])
 
-        opening = random.choice(OPENINGS[category])
-        middle = random.choice(MIDDLES)
-        ending = random.choice(ENDINGS)
+        if mode == "hook":
+            text = random.choice(HOOKS)
+            text += "\n\n" + random.choice(ENGAGEMENT_QUESTIONS)
+            text += "\n" + random.choice(CTAS)
 
-        text = f"{opening},\n{middle},\n{ending}."
+        elif mode == "micro_story":
+            text = random.choice(MICRO_STORIES)
+            text += "\n\n" + random.choice(ENGAGEMENT_QUESTIONS)
 
-        if self.prefs["emoji"]:
-            text += f" {random.choice(EMOJIS)}"
+        elif mode == "knowledge":
+            text = random.choice(KNOWLEDGE_BITS)
+            text += "\n\n" + random.choice(CTAS)
 
-        text = self.apply_synonyms(text)
+        elif mode == "question_post":
+            text = random.choice(ENGAGEMENT_QUESTIONS)
+            text += "\n\n" + random.choice(CTAS)
 
-        if self.prefs["questions"]:
-            question = random.choice(QUESTIONS[category])
-            text += f"\n\n<b>{question}</b>"
+        elif mode == "ultra_short":
+            text = random.choice(ULTRA_SHORT)
 
-        text += f"\n\n{HASHTAGS[category]}"
+        # أحيانًا نضيف هاشتاج واحد فقط
+        if random.random() < 0.4:
+            text += "\n\n" + random.choice(HASHTAGS)
 
         signature = hashlib.sha1(text.encode()).hexdigest()
 
-        if not SafetyEngine.is_safe(text):
-            logging.warning("Blocked unsafe content.")
+        if Memory.seen(self.uid, signature):
             return None
 
-        if MemoryEngine.seen(self.uid, signature):
-            logging.info("Duplicate prevented.")
-            return None
-
-        MemoryEngine.remember(self.uid, signature)
+        Memory.store(self.uid, signature)
 
         return f"<code>{text}</code>"
 
-# =========================================================
+# ======================================================
 # UI
-# =========================================================
+# ======================================================
 
-CATEGORIES = {
-    "palestine": "🇵🇸 فلسطين",
-    "gaza": "🔥 غزة",
-    "maps": "🗺️ خرائط فلسطين",
-    "memory": "📜 الذاكرة الفلسطينية",
-    "nakba": "🕊️ النكبة"
-}
-
-def categories_kb():
-    kb = InlineKeyboardMarkup(row_width=2)
-    for key, label in CATEGORIES.items():
-        kb.add(InlineKeyboardButton(label, callback_data=f"cat|{key}"))
+def main_kb():
+    kb = InlineKeyboardMarkup()
+    kb.add(InlineKeyboardButton("✨ Generate Post", callback_data="gen"))
     return kb
-
-def again_kb(cat):
-    kb = InlineKeyboardMarkup(row_width=2)
-    kb.add(
-        InlineKeyboardButton("🔄 Generate Again", callback_data=f"again|{cat}"),
-        InlineKeyboardButton("🎛 Reset Randomness", callback_data="reset")
-    )
-    return kb
-
-# =========================================================
-# HANDLERS
-# =========================================================
 
 @bot.message_handler(commands=["start"])
 def start(msg):
-    bot.send_message(msg.chat.id, "🇵🇸 اختر القسم:", reply_markup=categories_kb())
+    bot.send_message(
+        msg.chat.id,
+        "مولد محتوى تفاعلي 👇",
+        reply_markup=main_kb()
+    )
 
 @bot.callback_query_handler(func=lambda c: True)
-def callbacks(call):
+def cb(call):
 
-    uid = call.from_user.id
-    data = call.data.split("|")
+    if call.data == "gen":
+        engine = EngagementEngine(call.from_user.id)
+        post = engine.generate()
 
-    if data[0] == "cat":
-        cat = data[1]
-        engine = TextEngine(uid)
-        result = engine.build(cat)
-
-        if result:
-            bot.send_message(call.message.chat.id, result, reply_markup=again_kb(cat))
+        if post:
+            bot.send_message(call.message.chat.id, post)
         else:
-            bot.answer_callback_query(call.id, "⚠️ Try again")
+            bot.answer_callback_query(call.id, "جرب تاني ✨")
 
-    elif data[0] == "again":
-        cat = data[1]
-        prefs = get_prefs(uid)
-        prefs["randomness"] = min(0.9, prefs["randomness"] + 0.07)
-
-        engine = TextEngine(uid)
-        result = engine.build(cat)
-
-        if result:
-            bot.send_message(call.message.chat.id, result, reply_markup=again_kb(cat))
-        else:
-            bot.answer_callback_query(call.id, "⚠️ Variation blocked")
-
-    elif data[0] == "reset":
-        get_prefs(uid)["randomness"] = 0.5
-        bot.answer_callback_query(call.id, "Randomness Reset ✔️")
-
-# =========================================================
+# ======================================================
 # RUN
-# =========================================================
+# ======================================================
 
-logging.info("Bot running...")
+logging.info("Engagement Bot Running...")
 bot.infinity_polling(skip_pending=True)
