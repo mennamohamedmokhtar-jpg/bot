@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
 
 # =========================================================
-# MEMORY SYSTEM (ANTI-REPETITION)
+# MEMORY (ANTI-REPEAT)
 # =========================================================
 
 class Memory:
@@ -41,123 +41,116 @@ class Memory:
         cls.DATA[uid][sig] = cls.now()
 
 # =========================================================
-# CONTENT BANK (US AUDIENCE – HUMAN TONE)
+# CONTENT STORAGE (YOU CAN ADD YOUR OWN LINES HERE)
 # =========================================================
 
-PALESTINE_EMOJIS = ["🇵🇸", "🕊️"]
+CONTENT = {
+    "palestine": {
+        "base": [
+            "Palestine is more than a headline — it’s people and memory.",
+            "For many families, Palestine means identity and belonging.",
+            "The word Palestine carries stories across generations.",
+        ],
+        "extra": []  # 👈 Add your own Palestine lines here
+    },
+    "gaza": {
+        "base": [
+            "In Gaza, daily life continues with quiet resilience.",
+            "Gaza is home to families who hold onto hope.",
+            "Beyond the news cycle, Gaza is everyday life.",
+        ],
+        "extra": []  # 👈 Add your own Gaza lines here
+    },
+    "maps": {
+        "base": [
+            "Old maps still carry familiar names.",
+            "Historical maps document places long remembered.",
+            "A map can preserve more than borders — it preserves memory.",
+        ],
+        "extra": []  # 👈 Add your own Maps lines here
+    },
+    "suffering": {
+        "base": [
+            "Behind every statistic, there are human stories.",
+            "Displacement leaves marks that time does not erase.",
+            "Generations grow up shaped by circumstances they didn’t choose.",
+        ],
+        "extra": []  # 👈 Add your own General Struggle lines here
+    }
+}
 
-HOOKS = [
-    "Some stories don’t disappear — they wait to be heard.",
-    "There are places in the world that live far beyond headlines.",
-    "Not everything meaningful makes it into the trending feed.",
-    "Sometimes the quietest narratives carry the deepest weight.",
-    "History doesn’t vanish just because it isn’t centered.",
-    "Behind every map, there are families, memories, and names.",
-]
-
-REFLECTIVE_LINES = [
-    "For many families, the word “home” is more than geography — it’s memory carried across generations.",
-    "Entire communities grow up holding on to stories that shaped their grandparents’ lives.",
-    "Memory has a way of surviving even when circumstances change.",
-    "Identity isn’t just a political term — it’s language, food, streets, and childhood.",
-    "What people pass down isn’t just land — it’s belonging.",
-    "There’s something powerful about remembering where you come from.",
-]
-
-MICRO_STORIES = [
-    "A grandmother keeps an old key in a small wooden box.\nShe says it once opened a door that faced the sea.",
-    "In a small living room thousands of miles away, a faded photograph still hangs on the wall.\nThe landscape in it feels closer than the distance suggests.",
-    "A father teaches his child the name of a village the child has never seen.\nThe pronunciation matters — it keeps something alive.",
-    "At family dinners, stories surface about olive trees and stone houses.\nThey are told gently, but never casually.",
-]
-
-KNOWLEDGE_STYLE = [
-    "Historical records, personal testimonies, and archived maps continue to document a long and layered story.",
-    "Across decades, writers, historians, and families have preserved details that refuse to fade.",
-    "Names of towns and villages appear consistently in archives from different periods.",
-    "Cultural traditions continue in diaspora communities with remarkable continuity.",
+REFLECTION_LINES = [
+    "Memory travels even when people cannot.",
+    "Identity survives through language and tradition.",
+    "Home is sometimes a place carried in the heart.",
 ]
 
 SOFT_QUESTIONS = [
-    "How much of someone’s identity is tied to a place they’ve never stopped loving?",
-    "What does belonging really mean when it spans generations?",
+    "What does home mean to you?",
     "Can memory itself be a form of presence?",
-    "When people speak about home, what are they truly holding onto?",
+    "How do we carry history forward?",
 ]
 
 CALL_TO_ACTION = [
-    "If this resonates with you, share your thoughts below.",
-    "I’d genuinely like to hear how you see this.",
-    "Feel free to add your perspective respectfully.",
-    "What does this mean to you?",
+    "Share your thoughts respectfully.",
+    "I’d like to hear your perspective.",
+    "Feel free to comment below.",
 ]
 
-SOFT_HASHTAGS = [
+HASHTAGS = [
     "#Palestine",
-    "#PalestinianStories",
+    "#Gaza",
+    "#History",
     "#SharedHumanity",
-    "#MemoryAndIdentity",
 ]
+
+PALESTINE_EMOJIS = ["🇵🇸", "🕊️"]
 
 # =========================================================
 # CONTENT ENGINE
 # =========================================================
 
-class HumanToneEngine:
+class PostEngine:
 
     def __init__(self, uid):
         self.uid = uid
 
-    def add_emoji(self, text):
-        if random.random() < 0.7:
+    def get_lines(self, category):
+        base = CONTENT[category]["base"]
+        extra = CONTENT[category]["extra"]
+        return base + extra
+
+    def maybe_emoji(self, text):
+        if random.random() < 0.6:
             return f"{text} {random.choice(PALESTINE_EMOJIS)}"
         return text
 
     def maybe_hashtag(self, text):
-        if random.random() < 0.5:
-            text += "\n\n" + random.choice(SOFT_HASHTAGS)
+        if random.random() < 0.4:
+            text += "\n\n" + random.choice(HASHTAGS)
         return text
 
-    def generate_hook_post(self):
-        text = random.choice(HOOKS)
-        text = self.add_emoji(text)
-        text += "\n\n" + random.choice(REFLECTIVE_LINES)
-        text += "\n\n" + random.choice(SOFT_QUESTIONS)
-        text += "\n\n" + random.choice(CALL_TO_ACTION)
-        return self.maybe_hashtag(text)
+    def build(self, category):
 
-    def generate_micro_story(self):
-        text = random.choice(MICRO_STORIES)
-        text = self.add_emoji(text)
-        text += "\n\n" + random.choice(SOFT_QUESTIONS)
-        text += "\n\n" + random.choice(CALL_TO_ACTION)
-        return self.maybe_hashtag(text)
+        lines = self.get_lines(category)
+        if not lines:
+            return None
 
-    def generate_reflection(self):
-        text = random.choice(REFLECTIVE_LINES)
-        text = self.add_emoji(text)
-        text += "\n\n" + random.choice(REFLECTIVE_LINES)
-        text += "\n\n" + random.choice(SOFT_QUESTIONS)
-        return self.maybe_hashtag(text)
+        main_line = random.choice(lines)
+        reflection = random.choice(REFLECTION_LINES)
 
-    def generate_knowledge(self):
-        text = random.choice(KNOWLEDGE_STYLE)
-        text = self.add_emoji(text)
-        text += "\n\n" + random.choice(REFLECTIVE_LINES)
-        text += "\n\n" + random.choice(CALL_TO_ACTION)
-        return self.maybe_hashtag(text)
+        text = f"{main_line}"
+        text = self.maybe_emoji(text)
 
-    def build(self, mode):
-        if mode == "hook":
-            text = self.generate_hook_post()
-        elif mode == "story":
-            text = self.generate_micro_story()
-        elif mode == "reflection":
-            text = self.generate_reflection()
-        elif mode == "knowledge":
-            text = self.generate_knowledge()
-        else:
-            text = self.generate_hook_post()
+        text += f"\n\n{reflection}"
+
+        if random.random() < 0.7:
+            text += f"\n\n{random.choice(SOFT_QUESTIONS)}"
+
+        if random.random() < 0.7:
+            text += f"\n\n{random.choice(CALL_TO_ACTION)}"
+
+        text = self.maybe_hashtag(text)
 
         signature = hashlib.sha1(text.encode()).hexdigest()
 
@@ -169,26 +162,28 @@ class HumanToneEngine:
         return f"<code>{text}</code>"
 
 # =========================================================
-# UI
+# UI (ARABIC MENU ONLY)
 # =========================================================
 
 def main_menu():
     kb = InlineKeyboardMarkup(row_width=2)
     kb.add(
-        InlineKeyboardButton("📝 Emotional Hook", callback_data="mode|hook"),
-        InlineKeyboardButton("📖 Micro Story", callback_data="mode|story"),
-        InlineKeyboardButton("💭 Reflection", callback_data="mode|reflection"),
-        InlineKeyboardButton("📚 Knowledge Tone", callback_data="mode|knowledge"),
+        InlineKeyboardButton("🇵🇸 فلسطين", callback_data="cat|palestine"),
+        InlineKeyboardButton("🔥 غزة", callback_data="cat|gaza"),
+    )
+    kb.add(
+        InlineKeyboardButton("🗺️ الخرائط", callback_data="cat|maps"),
+        InlineKeyboardButton("💭 المعاناة العامة", callback_data="cat|suffering"),
     )
     return kb
 
-def regenerate_menu(mode):
+def regenerate_menu(category):
     kb = InlineKeyboardMarkup()
     kb.add(
-        InlineKeyboardButton("🔄 Generate Another", callback_data=f"regen|{mode}")
+        InlineKeyboardButton("🔄 توليد جملة أخرى", callback_data=f"regen|{category}")
     )
     kb.add(
-        InlineKeyboardButton("⬅️ Back to Menu", callback_data="menu")
+        InlineKeyboardButton("⬅️ رجوع للقائمة", callback_data="menu")
     )
     return kb
 
@@ -200,7 +195,7 @@ def regenerate_menu(mode):
 def start(msg):
     bot.send_message(
         msg.chat.id,
-        "Select the type of post you’d like to generate:",
+        "اختر نوع المحتوى:",
         reply_markup=main_menu()
     )
 
@@ -209,38 +204,38 @@ def callbacks(call):
 
     data = call.data.split("|")
     uid = call.from_user.id
-    engine = HumanToneEngine(uid)
+    engine = PostEngine(uid)
 
-    if data[0] == "mode":
-        mode = data[1]
-        post = engine.build(mode)
+    if data[0] == "cat":
+        category = data[1]
+        post = engine.build(category)
 
         if post:
             bot.send_message(
                 call.message.chat.id,
                 post,
-                reply_markup=regenerate_menu(mode)
+                reply_markup=regenerate_menu(category)
             )
         else:
-            bot.answer_callback_query(call.id, "Please try again.")
+            bot.answer_callback_query(call.id, "حاول مرة أخرى")
 
     elif data[0] == "regen":
-        mode = data[1]
-        post = engine.build(mode)
+        category = data[1]
+        post = engine.build(category)
 
         if post:
             bot.send_message(
                 call.message.chat.id,
                 post,
-                reply_markup=regenerate_menu(mode)
+                reply_markup=regenerate_menu(category)
             )
         else:
-            bot.answer_callback_query(call.id, "Please try again.")
+            bot.answer_callback_query(call.id, "حاول مرة أخرى")
 
     elif data[0] == "menu":
         bot.send_message(
             call.message.chat.id,
-            "Select the type of post you’d like to generate:",
+            "اختر نوع المحتوى:",
             reply_markup=main_menu()
         )
 
@@ -248,5 +243,5 @@ def callbacks(call):
 # RUN
 # =========================================================
 
-logging.info("US Audience Palestine Engagement Bot Running...")
+logging.info("Palestine Content Bot Running...")
 bot.infinity_polling(skip_pending=True)
