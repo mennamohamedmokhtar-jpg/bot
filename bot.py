@@ -47,23 +47,38 @@ class Memory:
 PALESTINE_EMOJIS = ["🇵🇸", "🍉", "🕊️"]
 
 def add_palestine_emoji(text):
-    emoji = random.choice(PALESTINE_EMOJIS)
-    return f"{text} {emoji}"
+    return f"{text} {random.choice(PALESTINE_EMOJIS)}"
 
 # =========================================================
-# CONTENT STRUCTURE (PROFESSIONAL & EXPANDABLE)
-# YOU CAN ADD YOUR OWN SENTENCES & HASHTAGS INSIDE "extra"
+# QUESTIONS (ENGAGEMENT BOOST)
+# =========================================================
+
+QUESTIONS = [
+    "What does this mean to you?",
+    "How do you see this?",
+    "Do you think memory can shape identity?",
+    "What are your thoughts?",
+    "Can history live through generations?",
+]
+
+# =========================================================
+# CONTENT STRUCTURE (EDIT & ADD FREELY)
 # =========================================================
 
 CONTENT = {
     "palestine": {
         "sentences": {
             "base": [
-                "Palestine is carried in memory and identity.",
-                "For many families, Palestine means belonging.",
-                "The name Palestine holds generations of stories.",
+                (
+                    "Palestine is more than a place on a map.\n"
+                    "For many families, it represents identity, memory, and belonging."
+                ),
+                (
+                    "The name Palestine carries stories across generations.\n"
+                    "It connects people to roots that time has not erased."
+                ),
             ],
-            "extra": []  # 👈 Add your own Palestine sentences here
+            "extra": []  # Add your own
         },
         "hashtags": {
             "base": [
@@ -71,23 +86,28 @@ CONTENT = {
                 "#FreePalestine",
                 "#PalestinianVoices",
             ],
-            "extra": []  # 👈 Add your own Palestine hashtags here
+            "extra": []
         }
     },
     "gaza": {
         "sentences": {
             "base": [
-                "Gaza is home to resilience and family life.",
-                "In Gaza, daily life continues despite hardship.",
-                "Gaza represents endurance and hope.",
+                (
+                    "Gaza is home to families who continue daily life with resilience.\n"
+                    "Beyond headlines, it is a place of community and endurance."
+                ),
+                (
+                    "In Gaza, ordinary moments still matter deeply.\n"
+                    "Hope and attachment to home remain strong."
+                ),
             ],
             "extra": []
         },
         "hashtags": {
             "base": [
                 "#Gaza",
-                "#GazaVoices",
                 "#StandWithGaza",
+                "#GazaVoices",
             ],
             "extra": []
         }
@@ -95,9 +115,14 @@ CONTENT = {
     "maps": {
         "sentences": {
             "base": [
-                "Historical maps preserve familiar names.",
-                "Old maps still reflect a shared memory.",
-                "Cartography often tells a deeper story.",
+                (
+                    "Historical maps preserve names that many still recognize.\n"
+                    "They quietly document places tied to memory."
+                ),
+                (
+                    "Old maps often reflect stories beyond borders.\n"
+                    "They capture a sense of continuity through time."
+                ),
             ],
             "extra": []
         },
@@ -113,9 +138,14 @@ CONTENT = {
     "suffering": {
         "sentences": {
             "base": [
-                "Behind every headline, there are human lives.",
-                "Displacement leaves lasting emotional traces.",
-                "Generations grow up shaped by difficult realities.",
+                (
+                    "Behind every statistic, there are human lives and emotions.\n"
+                    "Generations grow up shaped by circumstances they did not choose."
+                ),
+                (
+                    "Displacement leaves marks that last far beyond a moment.\n"
+                    "Memory often carries what history books summarize."
+                ),
             ],
             "extra": []
         },
@@ -155,13 +185,14 @@ class ProfessionalEngine:
         text = random.choice(lines)
         text = add_palestine_emoji(text)
 
-        signature = hashlib.sha1(text.encode()).hexdigest()
+        # Add engagement question
+        text += "\n\n" + random.choice(QUESTIONS)
 
+        signature = hashlib.sha1(text.encode()).hexdigest()
         if Memory.seen(self.uid, signature):
             return None
 
         Memory.store(self.uid, signature)
-
         return f"<code>{text}</code>"
 
     def generate_hashtags(self, category):
@@ -174,16 +205,14 @@ class ProfessionalEngine:
         text = add_palestine_emoji(text)
 
         signature = hashlib.sha1(text.encode()).hexdigest()
-
         if Memory.seen(self.uid, signature):
             return None
 
         Memory.store(self.uid, signature)
-
         return f"<code>{text}</code>"
 
 # =========================================================
-# UI MENUS (TWO MAIN LISTS)
+# UI
 # =========================================================
 
 def main_menu():
