@@ -442,7 +442,7 @@ CONTENT = {
     (
         "Palestine continues to live in reflection.\n"
         "Identity remains grounded in history."
-    )
+    ),
                 (
     "Palestine remains present in quiet conversations.\n"
     "Memory keeps its meaning alive."
@@ -826,7 +826,7 @@ CONTENT = {
 (
     "Palestine continues to live in shared heritage.\n"
     "Belonging remains alive."
-)
+),
 ]
         },
         "hashtags": {
@@ -1322,7 +1322,7 @@ CONTENT = {
     (
         "Gaza stands as a reminder of shared humanity.\n"
         "Hope continues forward."
-    )
+    ),
                 (
     "Gaza wakes each morning with determination.\n"
     "Life continues through shared strength."
@@ -1690,7 +1690,7 @@ CONTENT = {
 (
     "Gaza stands as part of shared humanity.\n"
     "Life continues forward."
-)
+),
 
 ]
         },
@@ -2198,7 +2198,7 @@ CONTENT = {
     (
         "Historical maps maintain the visibility of place names.\n"
         "Ink preserves context."
-    )
+    ),
 (
     "Maps preserve geographic references across time.\n"
     "They quietly reflect recorded history."
@@ -2582,7 +2582,7 @@ CONTENT = {
 (
     "Through cartography, the record of place endures.\n"
     "Time remains outlined."
-)
+),
 
 ]
         },
@@ -3083,7 +3083,7 @@ CONTENT = {
 (
     "Challenges help us grow emotionally.\n"
     "Hope and support make life lighter."
-)
+),
 (
     "Life is full of ups and downs.\n"
     "Every challenge is an opportunity to grow."
@@ -3491,7 +3491,7 @@ CONTENT = {
 (
     "Every struggle is an opportunity to learn.\n"
     "Hope guides the heart."
-)
+),
 ]
         },
         "hashtags": {
@@ -3678,6 +3678,7 @@ def callbacks(call):
 
 logging.info("Professional Palestine Content Bot Running...")
 bot.infinity_polling(skip_pending=True)
+
 
 
 
