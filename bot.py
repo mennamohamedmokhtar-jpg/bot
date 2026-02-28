@@ -78,7 +78,12 @@ CONTENT = {
                     "It connects people to roots that time has not erased."
                 ),
             ],
-            "extra": []  # Add your own
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         },
         "hashtags": {
             "base": [
@@ -86,7 +91,12 @@ CONTENT = {
                 "#FreePalestine",
                 "#PalestinianVoices",
             ],
-            "extra": []
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         }
     },
     "gaza": {
@@ -101,7 +111,12 @@ CONTENT = {
                     "Hope and attachment to home remain strong."
                 ),
             ],
-            "extra": []
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         },
         "hashtags": {
             "base": [
@@ -109,7 +124,12 @@ CONTENT = {
                 "#StandWithGaza",
                 "#GazaVoices",
             ],
-            "extra": []
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         }
     },
     "maps": {
@@ -124,7 +144,12 @@ CONTENT = {
                     "They capture a sense of continuity through time."
                 ),
             ],
-            "extra": []
+           "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         },
         "hashtags": {
             "base": [
@@ -132,7 +157,12 @@ CONTENT = {
                 "#Archive",
                 "#DocumentedHistory",
             ],
-            "extra": []
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         }
     },
     "suffering": {
@@ -147,7 +177,12 @@ CONTENT = {
                     "Memory often carries what history books summarize."
                 ),
             ],
-            "extra": []
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         },
         "hashtags": {
             "base": [
@@ -155,7 +190,12 @@ CONTENT = {
                 "#HumanStories",
                 "#CollectiveMemory",
             ],
-            "extra": []
+            "extra": [
+    (
+        "Every homeland lives inside the hearts of its people.\n"
+        "Memory can travel even when bodies cannot."
+    ),
+]
         }
     }
 }
@@ -328,3 +368,4 @@ def callbacks(call):
 
 logging.info("Professional Palestine Content Bot Running...")
 bot.infinity_polling(skip_pending=True)
+
